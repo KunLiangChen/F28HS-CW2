@@ -78,43 +78,23 @@ void digital_write (volatile uint32_t *gpio, int pin, int value)
   /* COMPLETE THIS CODE */
   /* ***************************************************************************** */
   asm volatile(
-  "\tLDR R2, %[gpio]\n"
-  "\tMOV R0, %[pin]\n"
-  "\tMOV R1, %[val]\n"
-  "\tCMP R1, #1\n"
-  "\tBEQ 1f\n"
-  "\tMOV R4, %[set]\n"
-  "\tLSL R4, R4, #2\n"
-  "\tMOV R5, %[clr]\n"
-  "\tLSL R5, R5, #2\n"
-  "\tLDR R3,[R2, R4]\n"
-  "\tLDR R4,[R2, R5]\n"
-  "\tMOV R5, #1\n"
-  "\tBIC R3, R3, R5, LSL R0\n"
-  "\tORR R4, R4, R5, LSL R0\n"
-  "\tMOV R0, %[set]\n"
-  "\tMOV R1, %[clr]\n"
-  "\tLSL R0, R0, #2\n"
-  "\tLSL R1, R1, #2\n"
-  "\tSTR R3, [R2, R0]\n"
-  "\tSTR R4, [R2, R1]\n"
-  
-  "\t1:\n"
-  "\tMOV R4, %[set]\n"
-  "\tLSL R4, R4, #2\n"
-  "\tMOV R5, %[clr]\n"
-  "\tLSL R5, R5, #2\n"
-  "\tLDR R3,[R2, R4]\n"
-  "\tLDR R4,[R2, R5]\n"
-  "\tMOV R5, #1\n"
-  "\tORR R3, R3, R5, LSL R0\n"
-  "\tBIC R4, R4, R5, LSL R0\n"
-  "\tMOV R0, %[set]\n"
-  "\tMOV R1, %[clr]\n"
-  "\tLSL R0, R0, #2\n"
-  "\tLSL R1, R1, #2\n"
-  "\tSTR R3, [R2, R0]\n"
-  "\tSTR R4, [R2, R1]\n"
+    "\tLDR R2, %[gpio]\n"
+    "\tMOV R0, #1\n"
+    "\tLSL R0, R0, %[pin]\n"  //move 1<<pin to specific bit
+    
+    "\tCMP %[val], #0\n"
+    "\tBEQ 1f\n"
+    
+    //if not 0
+    "\tMOV R1, %[set]\n"
+    "\tSTR R0, [R2, R1, LSL #2]\n"
+    "\tB 2f\n"
+    
+    "\t1:\n" //if 0
+    "\tMOV R1, %[clr]\n"
+    "\tSTR R0, [R2, R1, LSL #2]\n"
+    
+    "\t2:\n"
   :
   :[gpio] "m" (gpio), [pin] "r" (pin), [val] "r" (value),
    [set] "I" (GPIO_GPSET0),
