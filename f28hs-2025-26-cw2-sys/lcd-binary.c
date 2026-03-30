@@ -27,18 +27,24 @@ void pin_mode(volatile uint32_t *gpio, int pin, int mode)
   "\tMOV R1, %[mode]\n"
   "\tCMP R0, #10\n"
   "\tBGE 1f\n"
-  "\tADD R2, R2, %[fsel0]\n"  
+  "\tMOV R4, %[fsel0]\n"
+  "\tLSL R4, R4, #2\n"
+  "\tADD R2, R2, R4\n"  
   "\tB 3f\n"
   
   "\t1:\n"
   "\t CMP R0, #20\n"
   "\tBGE 2f\n"
-  "\tADD R2, R2, %[fsel1]\n"
+  "\tMOV R4, %[fsel1]\n"
+  "\tLSL R4, R4, #2\n"
+  "\tADD R2, R2, R4\n" 
   "\tSUB R0, R0, #10\n"
   "\tB 3f\n"
   
   "\t2:\n"
-  "\tADD R2, R2, %[fsel2]\n"
+  "\tMOV R4, %[fsel2]\n"
+  "\tLSL R4, R4, #2\n"
+  "\tADD R2, R2, R4\n" 
   "\tSUB R0, R0, #20\n"
   
   "\t3:\n"
@@ -64,6 +70,7 @@ void pin_mode(volatile uint32_t *gpio, int pin, int mode)
 /*
   Hardware Interface function.
   Send a @value@ along pin number @pin@. Values should be LOW or HIGH (encoded as int).
+  check whether value is 1 or 0 and we have two different operation
 */
 void digital_write (volatile uint32_t *gpio, int pin, int value)
 {
@@ -72,10 +79,36 @@ void digital_write (volatile uint32_t *gpio, int pin, int value)
   /* ***************************************************************************** */
   asm volatile(
   "\tLDR R2, %[gpio]\n"
+  "\tMOV R0, %[pin]\n"
+  "\tMOV R1, %[val]\n"
+  "\tCMP R1, #1\n"
+  "\tBEQ 1f\n"
+  "\tMOV R4, %[set]\n"
+  "\tLSL R4, R4, #2\n"
+  "\tMOV R5, %[clr]\n"
+  "\tLSL R5, R5, #2\n"
+  "\tLDR R3,[R2, R4]\n"
+  "\tLDR R4,[R2, R5]\n"
+  "\tMOV R5, #1\n"
+  "\tBIC R3, R3, R5, LSL R0\n"
+  "\tORR R4, R4, R5, LSL R0\n"
   
+  
+  "\t1:\n"
+  "\tMOV R4, %[set]\n"
+  "\tLSL R4, R4, #2\n"
+  "\tMOV R5, %[clr]\n"
+  "\tLSL R5, R5, #2\n"
+  "\tLDR R3,[R2, R4]\n"
+  "\tLDR R4,[R2, R5]\n"
+  "\tMOV R5, #1\n"
+  "\tORR R3, R3, R5, LSL R0\n"
+  "\tBIC R4, R4, R5, LSL R0\n"
   :
-  :[gpio] "m" (gpio), [pin] "r" (pin), [val] "r" (value)
-  : "r2", "cc"
+  :[gpio] "m" (gpio), [pin] "r" (pin), [val] "r" (value),
+   [set] "I" (GPIO_GPSET0),
+   [clr] "I" (GPIO_GPCLR0)
+  : "r5","r4","r3","r0","r1","r2", "cc"
   );
 
 }

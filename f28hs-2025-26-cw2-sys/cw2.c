@@ -479,6 +479,7 @@ int main(int argc, char **argv){
 
   /* ***************************************************************************** */
   /* COMPLETE THIS CODE */
+
   /* Set the mode for the pins here, using the low-level functions in lcd-binary.c */
   /* ***************************************************************************** */
   
