@@ -12,7 +12,9 @@
 /*
   Hardware Interface function.
   Set the mode for pin number @pin@ to @mode@ (can be INPUT or OUTPUT (encoded as int)).
-  compare the pin number and choose the correct register.
+  compare the pin to determine the register
+  moudle it to 0 - 9 (19 -> 9 etc.)
+  use shift and orr i
 */
 void pin_mode(volatile uint32_t *gpio, int pin, int mode)
 {
@@ -25,20 +27,37 @@ void pin_mode(volatile uint32_t *gpio, int pin, int mode)
   "\tMOV R1, %[mode]\n"
   "\tCMP R0, #10\n"
   "\tBGE 1f\n"
-  "\tADD R0, R0, R0, LSL #1\n"
-  "\tLSL R1, R1, R0\n"
-  "\tSTR R1, [%[gpio], #GPIO_GPFSEL0]\n"
-  "\t1: CMP R0, #20\n"
+  "\tADD R2, R2, %[fsel0]\n"  
+  "\tB 3f\n"
+  
+  "\t1:\n"
+  "\t CMP R0, #20\n"
   "\tBGE 2f\n"
-  "\tADD R0, R0, R0, LSL #1\n"
-  "\tLSL R1, R1, R0\n"
-  "\tSTR R1, [%[gpio], #GPIO_GPFSEL1]\n"
-  "\t2: ADD R0, R0, R0, LSL #1\n"
-  "\tLSL R1, R1, R0\n"
-  "\tSTR R1, [%[gpio], #GPIO_GPFSEL2]\n"
+  "\tADD R2, R2, %[fsel1]\n"
+  "\tSUB R0, R0, #10\n"
+  "\tB 3f\n"
+  
+  "\t2:\n"
+  "\tADD R2, R2, %[fsel2]\n"
+  "\tSUB R0, R0, #20\n"
+  
+  "\t3:\n"
+  "\tADD R3, R0, R0, LSL #1\n"
+  "\tLDR R4, [R2]\n"
+  "\tMOV R5, #7\n" 
+  "\tBIC R4, R4, R5, LSL R3\n"
+  "\tAND R1, R1, #7\n"
+  "\tORR R4, R4, R1, LSL R3\n"
+  
+  "\tSTR R4, [R2]\n"
+  
+  
   :
-  :[gpio] "m" (gpio), [pin] "r" (pin), [mode] "r" (mode)
-  :"r2", "r1", "r0", "cc"
+  :[gpio] "m" (gpio), [pin] "r" (pin), [mode] "r" (mode),
+   [fsel0] "I" (GPIO_GPFSEL0),
+   [fsel1] "I" (GPIO_GPFSEL1),
+   [fsel2] "I" (GPIO_GPFSEL2)
+  :"r5", "r4", "r3", "r2", "r1", "r0", "cc"
   );
 }
 
