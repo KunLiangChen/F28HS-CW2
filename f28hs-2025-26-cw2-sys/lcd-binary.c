@@ -92,7 +92,12 @@ void digital_write (volatile uint32_t *gpio, int pin, int value)
   "\tMOV R5, #1\n"
   "\tBIC R3, R3, R5, LSL R0\n"
   "\tORR R4, R4, R5, LSL R0\n"
-  
+  "\tMOV R0, %[set]\n"
+  "\tMOV R1, %[clr]\n"
+  "\tLSL R0, R0, #2\n"
+  "\tLSL R1, R1, #2\n"
+  "\tSTR R3, [R2, R0]\n"
+  "\tSTR R4, [R2, R1]\n"
   
   "\t1:\n"
   "\tMOV R4, %[set]\n"
@@ -104,6 +109,12 @@ void digital_write (volatile uint32_t *gpio, int pin, int value)
   "\tMOV R5, #1\n"
   "\tORR R3, R3, R5, LSL R0\n"
   "\tBIC R4, R4, R5, LSL R0\n"
+  "\tMOV R0, %[set]\n"
+  "\tMOV R1, %[clr]\n"
+  "\tLSL R0, R0, #2\n"
+  "\tLSL R1, R1, #2\n"
+  "\tSTR R3, [R2, R0]\n"
+  "\tSTR R4, [R2, R1]\n"
   :
   :[gpio] "m" (gpio), [pin] "r" (pin), [val] "r" (value),
    [set] "I" (GPIO_GPSET0),
