@@ -111,8 +111,18 @@ void digital_write (volatile uint32_t *gpio, int pin, int value)
 int read_button(volatile uint32_t *gpio, int button) {
   /* ***************************************************************************** */
   /* COMPLETE THIS CODE */
+  int level;
+  asm volatile(
+    "\tLDR R2, %[gpio]\n"
+    "\tMOV R1, #1\n"
+    "\tLDR R0, [R2, #52]\n"
+    "\tLSL R1, %[pin]\n"
+    "\tAND %[out], R0, R1\n"
+  :[out] "=r" (level)
+  :[gpio] "m" (gpio), [pin] "r" (button)
+  :"r0","r1","r2","cc");
   /* ***************************************************************************** */
   // fill in your code and replace the return statement below with the value read from the button
-  return LOW;
+  return level;
 }
 

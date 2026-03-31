@@ -403,6 +403,7 @@ int main(int argc, char **argv){
   /* ***************************************************************************** */
   /* COMPLETE THIS CODE */
   const char name[] = "Chen";
+  attemptSeq = calloc(seqlen, sizeof(int));
   /* Initialise the sequences that you need here, before using them  */
   /* ***************************************************************************** */
 
@@ -499,7 +500,7 @@ int main(int argc, char **argv){
     /* ***************************************************************************** */
     /* OPTIONAL CODE to show that the LCD display is working */
     /* ***************************************************************************** */
-    printf("LCD only");
+
     lcd_puts(gpio, name);
     exit(2);
   }
@@ -543,7 +544,7 @@ int main(int argc, char **argv){
   /* ***************************************************************************** */
 
   /* OPTIONAL: wait for ENTER key before continuing */
-  waitForEnter () ; // -------------------------------------------------------
+  waitForEnter() ; // -------------------------------------------------------
 
   /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
   /* Main part of the application  */
