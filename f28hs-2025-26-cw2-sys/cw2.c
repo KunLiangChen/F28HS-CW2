@@ -84,8 +84,9 @@ volatile unsigned int gpiobase ;
 volatile uint32_t *gpio ;
 
 // flag to be set in signal handler for interval times
-static int timed_out = 0;
-
+static volatile int timed_out = 0;
+static struct sigaction sa;
+static struct itimerval timer;
 /* --------------------------------------------------------------------------- */
 /* external prototypes */
 
@@ -121,8 +122,9 @@ void timer_handler (int signum)
 {
   /* ***************************************************************************** */
   /* COMPLETE THIS CODE (replace existing code) */
+  timed_out = 1;
   /* ***************************************************************************** */
-  printf("timer_handler: not implemented; should set value of time_out; current value: %d\n", timed_out);
+  //printf("timer_handler: not implemented; should set value of time_out; current value: %d\n", timed_out);
 }
 
 /* 
@@ -131,6 +133,14 @@ void timer_handler (int signum)
 void initITimer(uint64_t timeout){
   /* ***************************************************************************** */
   /* COMPLETE THIS CODE */
+  memset(&sa, 0, sizeof(sa));
+  sa.sa_handler= &timer_handler;
+  sigaction(SIGALRM, &sa, NULL);
+  timer.it_value.tv_sec = 0;
+  timer.it_value.tv_usec = timeout;
+  timer.it_interval.tv_sec = 0;
+  timer.it_interval.tv_usec = 0;
+  
   /* ***************************************************************************** */
 
 }
@@ -315,7 +325,7 @@ int main(int argc, char **argv){
   // char str2[32];
 
   // useful for interval timers					    
-  // struct timeval t1, t2 ;
+   struct timeval t1, t2;
 
   // variables for command-line processing
   // command-line options
@@ -480,7 +490,9 @@ int main(int argc, char **argv){
 
   /* ***************************************************************************** */
   /* COMPLETE THIS CODE */
-
+  pin_mode(gpio, LED, OUTPUT);
+  pin_mode(gpio, LED2, OUTPUT);
+  pin_mode(gpio, BUTTON, INPUT);
   /* Set the mode for the pins here, using the low-level functions in lcd-binary.c */
   /* ***************************************************************************** */
   
@@ -554,15 +566,33 @@ int main(int argc, char **argv){
 
   // ...........................................................................
   // Iterate over all elements of the sequence
+  initITimer(TIMEOUT);
   for (int i=0; i<seqlen; i++) {
-
+      setitimer(ITIMER_REAL, &timer, NULL);
+      while(!timed_out)
+      {
+        if(read_button(gpio,BUTTON)) 
+        {
+          buttonPressed++;
+          printf("Hello?");
+          while(read_button(gpio,BUTTON) && !timed_out);
+          }
+        }
+      if (buttonPressed < 1 || buttonPressed > digits) {
+          buttonPressed = 1;
+      }
+      attemptSeq[i] = buttonPressed;
+      timed_out = 0;
+      
       /* ***************************************************************************** */
-      /* COMPLETE THIS CODE (replace existing code)                                    */
+      /* COMPLETE THIS CODE (replace existing code)  
+       *                                   */
       /* Complete the body of the loop, reading button presses to input numbers        */
       /* using interval timers for timeout                                             */
       /* and filling in a sequence with the input values                               */
       /* ***************************************************************************** */
-    printf("body of input loop not implemeneted; should call read_button and check for value of buttonPressed: current value: %d\n", buttonPressed);
+      printf(" value of buttonPressed: current value: %d\n", buttonPressed);
+      buttonPressed = 0;
   }
   
     // -------------------------------------------------------
