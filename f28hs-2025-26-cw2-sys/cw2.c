@@ -136,8 +136,8 @@ void initITimer(uint64_t timeout){
   memset(&sa, 0, sizeof(sa));
   sa.sa_handler= &timer_handler;
   sigaction(SIGALRM, &sa, NULL);
-  timer.it_value.tv_sec = 0;
-  timer.it_value.tv_usec = timeout;
+  timer.it_value.tv_sec = timeout / 1000000;
+  timer.it_value.tv_usec = timeout% 1000000;
   timer.it_interval.tv_sec = 0;
   timer.it_interval.tv_usec = 0;
   
@@ -568,20 +568,37 @@ int main(int argc, char **argv){
   // Iterate over all elements of the sequence
   initITimer(TIMEOUT);
   for (int i=0; i<seqlen; i++) {
-      setitimer(ITIMER_REAL, &timer, NULL);
+      if(setitimer(ITIMER_REAL, &timer, NULL) != 0)
+      {
+        fprintf(stderr,"Error, fail to setitimer. ");
+        exit(2);
+        }
       while(!timed_out)
       {
         if(read_button(gpio,BUTTON)) 
         {
+          usleep(20000);
+          if(!read_button(gpio,BUTTON)) continue;
           buttonPressed++;
-          printf("Hello?");
           while(read_button(gpio,BUTTON) && !timed_out);
+          usleep(20000);
           }
         }
       if (buttonPressed < 1 || buttonPressed > digits) {
           buttonPressed = 1;
       }
       attemptSeq[i] = buttonPressed;
+      digital_write(gpio, LED2, 1);
+      sleep(1);
+      digital_write(gpio, LED2, 0);
+      sleep(1);
+      for(int j = 0; j < buttonPressed; j++)
+      {
+      digital_write(gpio, LED, 1);
+      usleep(500000);
+      digital_write(gpio, LED, 0);
+      usleep(500000);
+        }
       timed_out = 0;
       
       /* ***************************************************************************** */
