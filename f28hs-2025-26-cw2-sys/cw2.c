@@ -320,6 +320,24 @@ int submit_PIN(const int *attSeq, int seqlen, int submitDelay) {
 
 /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 
+void comb(int start, int index, int n, int m, int *combine)
+{
+  if(index == m)
+  {
+    return;
+    }
+  for(int i = start; i<=n; i++)
+  {
+    combine[index] = i;
+    comb(start++,index++,n,m,combine);
+    }
+
+  }
+
+void choose
+{
+  }
+
 int main(int argc, char **argv){
   int found = 0, code = 0, refCode = 0;
   int buttonPressed = 0;
@@ -679,6 +697,7 @@ int main(int argc, char **argv){
         hamming_dist = hamming(theSeq, attemptSeq, seqlen);
         }
 
+#ifdef TASK4 // This is a task 4 full space implementation
     for(unsigned long i = 0; i < bound; i++)
     {
       //1234 -> [1] [2] [3] [4]
@@ -689,18 +708,32 @@ int main(int argc, char **argv){
         temp/=digits;
         }
       attempts++;
+      //map from decimal to 3.
       if(hamming(submitSeq,attemptSeq,seqlen)== hamming_dist) 
       {
-        found = submit_PIN(submitSeq, seqlen, submitDelay);
+        int current_found = submit_PIN(submitSeq, seqlen, submitDelay);
         submits++;
+        
+        if(current_found & !found)
+        {
+          found = 1;
+          found_at = i+1;
+          }
         }
       
-      if(found) 
+      if(found & !opt_e) 
       {
-      found_at = i+1;
       break;
       }
       }
+#else // This is task5 two loop implementation
+  int n = seqlen;
+  int m = hamming_dist;
+  int combine[m];
+
+
+#endif    
+
     stopTime = clock();
 
     printf("Runtime; %f secs\n", (stopTime-startTime)/CLOCKS_PER_SEC);
