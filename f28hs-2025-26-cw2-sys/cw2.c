@@ -335,8 +335,8 @@ int main(int argc, char **argv){
   int   fd ;
 
   // strings for temporary usage (e.g. writing to LCD display)
-  // char str1[32];
-  // char str2[32];
+   char str1[32];
+   char str2[32];
 
   // useful for interval timers					    
    struct timeval t1, t2;
@@ -427,7 +427,9 @@ int main(int argc, char **argv){
   /* ***************************************************************************** */
   /* COMPLETE THIS CODE */
   const char name[] = "Chen";
+  int *submitSeq;
   attemptSeq = calloc(seqlen, sizeof(int));
+  submitSeq = calloc(seqlen, sizeof(int));
   /* Initialise the sequences that you need here, before using them  */
   /* ***************************************************************************** */
 
@@ -558,6 +560,8 @@ int main(int argc, char **argv){
     showSeq(theSeq,seqlen);
     showSeq(refSeq,seqlen);
     showHamm(refCode, theSeq, refSeq); 
+    sprintf(str1, "%d", refCode);
+    lcd_puts(gpio,str1);
     exit(EXIT_SUCCESS);
   }  
 
@@ -580,6 +584,8 @@ int main(int argc, char **argv){
 
   // ...........................................................................
   // Iterate over all elements of the sequence
+  if(!opt_r)
+  {
   initITimer(TIMEOUT);
   for (int i=0; i<seqlen; i++) {
       if(setitimer(ITIMER_REAL, &timer, NULL) != 0)
@@ -587,6 +593,9 @@ int main(int argc, char **argv){
         fprintf(stderr,"Error, fail to setitimer. ");
         exit(2);
         }
+      /*
+       * Use to eliminate the button error and read accurate number
+       * */
       while(!timed_out)
       {
         if(read_button(gpio,BUTTON)) 
@@ -613,7 +622,8 @@ int main(int argc, char **argv){
       //digital_write(gpio, LED, 0);
       //usleep(500000);
         //}
-        
+      
+      //More clear 
       blinkN(gpio, LED,buttonPressed);
       timed_out = 0;
       
@@ -627,7 +637,7 @@ int main(int argc, char **argv){
       printf(" value of buttonPressed: current value: %d\n", buttonPressed);
       buttonPressed = 0;
   }
-  
+}
     // -------------------------------------------------------
     // PHASE 2: Main Task: full search
 
@@ -648,6 +658,7 @@ int main(int argc, char **argv){
 
     // calculate the total range of possible sequences
     unsigned long bound = powl(digits, seqlen);
+    
 
     // time-stamp
     startTime = clock();
@@ -658,7 +669,29 @@ int main(int argc, char **argv){
     /* then search for the secret sequence and report where it was found             */
     /* with -r option, the commandline sequence should be used as input sequence     */
     /* ***************************************************************************** */
+    int hamming_dist = 0;
+    if(!opt_r)
+    {
+      hamming_dist = hamming(theSeq, attemptSeq, seqlen);
+      }else
+      {
+        readSeq(attemptSeq, seqlen, opt_r);
+        hamming_dist = hamming(theSeq, attemptSeq, seqlen);
+        }
 
+    for(unsigned long i = 0; i < bound; i++)
+    {
+      //1234 -> [1] [2] [3] [4]
+      int temp = i;
+      for(int j = seqlen-1; j >=0; j--)
+      {
+        submitSeq[j] = temp%digits;
+        temp/=digits;
+        }
+      attempts++;
+      if(hamming(submitSeq,attemptSeq,seqlen)== hamming_dist) found = submit_PIN(submitSeq, seqlen, submitDelay);
+      if(found) break;
+      }
     stopTime = clock();
 
     printf("Runtime; %f secs\n", (stopTime-startTime)/CLOCKS_PER_SEC);
