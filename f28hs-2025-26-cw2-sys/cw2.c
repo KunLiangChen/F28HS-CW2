@@ -215,6 +215,13 @@ void readSeq(int *seq, int seqlen, int val) {
 void blinkN(volatile uint32_t *gpio, int led, int c) { 
   /* ***************************************************************************** */
   /* COMPLETE THIS CODE */
+  for(int j = 0; j < c; j++)
+      {
+      digital_write(gpio, led, 1);
+      usleep(500000);
+      digital_write(gpio, led, 0);
+      usleep(500000);
+        }
   /* ***************************************************************************** */
 }
 
@@ -252,7 +259,13 @@ int hamming(const int *x, const int *y, int seqlen) {
   /* ***************************************************************************** */
   /* COMPLETE THIS CODE (C version is OPTIONAL, but you need an implementation of hamming() */
   /* ***************************************************************************** */
-  fprintf(stderr, "hamming: still needs to be implemented\n");
+  int hamming = 0;
+  for(int i = 0;i < seqlen; i++)
+  {
+    if (*(x+i) != *(y+i)) hamming++;
+    }
+  return hamming;
+  //fprintf(stderr, "hamming: still needs to be implemented\n");
 }
 #endif
 
@@ -262,8 +275,9 @@ int hamming(const int *x, const int *y, int seqlen) {
 void showHamm(int code, const int *seq1, const int *seq2) {
   /* ***************************************************************************** */
   /* COMPLETE THIS CODE */
+  printf(" hamming %d \n",code);
   /* ***************************************************************************** */
-  fprintf(stderr, "showHamm: still needs to be implemented\n");
+  //fprintf(stderr, "showHamm: still needs to be implemented\n");
 }
 
 /* 
@@ -588,17 +602,19 @@ int main(int argc, char **argv){
           buttonPressed = 1;
       }
       attemptSeq[i] = buttonPressed;
-      digital_write(gpio, LED2, 1);
+      write_LED(gpio, LED2, 1);
       sleep(1);
-      digital_write(gpio, LED2, 0);
+      write_LED(gpio, LED2, 0);
       sleep(1);
-      for(int j = 0; j < buttonPressed; j++)
-      {
-      digital_write(gpio, LED, 1);
-      usleep(500000);
-      digital_write(gpio, LED, 0);
-      usleep(500000);
-        }
+      //for(int j = 0; j < buttonPressed; j++)
+      //{
+      //digital_write(gpio, LED, 1);
+      //usleep(500000);
+      //digital_write(gpio, LED, 0);
+      //usleep(500000);
+        //}
+        
+      blinkN(gpio, LED,buttonPressed);
       timed_out = 0;
       
       /* ***************************************************************************** */

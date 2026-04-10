@@ -12,8 +12,28 @@ hamming:		  @ Input: 2 ptrs to int arrays in R0 and R1, length in R2
 			  @ don't forget to push relevant registers here
 	@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 	@ ... COMPLETE THIS CODE ...
+	mov r3, #0
+	cmp r2, #0
+	ble	done
+	push {r4, r5}
+	
+loop:
+	cmp r2,#0
+	ble done
+	ldr r4, [r0], #4
+	ldr r5, [r1], #4
+	
+	cmp r4,r5
+	it ne
+	addne r3,r3,#1
+
+	subs r2,r2,#1
+	b loop
 	@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 			  @ don't forget to pop relevant registers here
+done:
+	mov r0,r3
+	pop {r4,r5}	
 	BX   LR
 
 @ Test data	
