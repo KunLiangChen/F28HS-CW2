@@ -685,12 +685,21 @@ int main(int argc, char **argv){
       int temp = i;
       for(int j = seqlen-1; j >=0; j--)
       {
-        submitSeq[j] = temp%digits;
+        submitSeq[j] = temp%digits+1;
         temp/=digits;
         }
       attempts++;
-      if(hamming(submitSeq,attemptSeq,seqlen)== hamming_dist) found = submit_PIN(submitSeq, seqlen, submitDelay);
-      if(found) break;
+      if(hamming(submitSeq,attemptSeq,seqlen)== hamming_dist) 
+      {
+        found = submit_PIN(submitSeq, seqlen, submitDelay);
+        submits++;
+        }
+      
+      if(found) 
+      {
+      found_at = i+1;
+      break;
+      }
       }
     stopTime = clock();
 
@@ -705,9 +714,15 @@ int main(int argc, char **argv){
   /* COMPLETE THIS CODE                                                            */
   /* write an exit message to the LCD display                                      */
   /* ***************************************************************************** */
-
+  blinkN(gpio, LED, 2);
+  lcd_clear(gpio);
+  usleep(2000);
+  lcd_write_row(gpio, 1,"PIN");
+  lcd_write_row(gpio, 2,"found");
   free(theSeq);
   free(refSeq);
+  free(attemptSeq);
+  free(submitSeq);
 
  return 0;
 }
