@@ -320,22 +320,60 @@ int submit_PIN(const int *attSeq, int seqlen, int submitDelay) {
 
 /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 
-void comb(int start, int index, int n, int m, int *combine)
+/*
+ * @brief inner loop
+ * From the first position to last position
+ * From 1 to digits. generate all the possible value
+ * @example: [3 2 2] [1 2]
+ * [3 1 1] [3 1 2] [3 1 3]
+ * [3 2 1] [3 2 2] [3 2 3]
+ * */
+void choose(int *combine,int *attemptSeq,int *submitSeq,int digits, int n, int m, int currentM, int *found, int submitDelay)
+{
+    if(currentM == m)
+    {
+      if(hamming(submitSeq,attemptSeq,n) == m)
+      {
+       *found = submit_PIN(submitSeq, n, submitDelay);
+      }
+      return;
+      }
+    
+    int Idx = combine[currentM];
+    for(int val = 1; val<=digits; val++)
+    {
+      submitSeq[Idx] = val;
+      if(!*found) choose(combine, attemptSeq, submitSeq, digits, n, m, currentM++ , found, submitDelay);
+      }
+  }
+
+
+/*
+ * @brief Recursively give out all the combine possible
+ * Forcely require the rising order
+ * @param start: the beginning of the domain
+ * @param index: the current position to choose the val
+ * @param n: the seqlen, the num of choice
+ * @param m: the hamming_dist, the num of positions
+ * @param combine: store the combine of this time
+ * @param digits
+ * @param submitSeq: used in inner loop to be modified
+ * @param found:  whether the pin is found
+ * Outer loop of hamming search
+ * */
+void comb(int start, int index, int n, int m, int *combine, int *attemptSeq,int *submitSeq,int digits,int *found,int submitDelay)
 {
   if(index == m)
   {
+    choose(combine, attemptSeq, submitSeq, digits,n ,m,0,found,submitDelay);
     return;
     }
   for(int i = start; i<=n; i++)
   {
     combine[index] = i;
-    comb(start++,index++,n,m,combine);
+    comb(start++,index++,n,m,combine,attemptSeq,submitSeq,digits,found,submitDelay);
     }
 
-  }
-
-void choose
-{
   }
 
 int main(int argc, char **argv){
@@ -727,10 +765,17 @@ int main(int argc, char **argv){
       }
       }
 #else // This is task5 two loop implementation
+  /*
+   * Find out the hamming dist
+   * This means the value need to be modify
+   * two loop:
+   * loop out all the possible position need to modify
+   * loop out all the possible value on each possition
+   * */
   int n = seqlen;
   int m = hamming_dist;
   int combine[m];
-
+  memcpy(submitSeq, attemptSeq, n*sizeof(int));
 
 #endif    
 
