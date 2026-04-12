@@ -286,9 +286,24 @@ void showHamm(int code, const int *seq1, const int *seq2) {
   HINT: this function is useful for Task 3: arbitrary length of sequence.	     
 */
 static inline
-void incseq(int *seq, int seqlen,  int digits){
+int incseq(int *seq, int seqlen,  int digits){
   /* ***************************************************************************** */
   /* OPTIONALLY COMPLETE THIS CODE */
+  int carry = 1;
+  for(int i = seqlen-1; i>=0; i--)
+  {
+    seq[i]+= carry;
+    if(seq[i] > digits)
+    {
+      seq[i] = 1;
+      carry = 1;
+      }else
+      {
+        carry = 0;
+        break;
+        }
+    return carry;
+    }
   /* ***************************************************************************** */
 }
 
@@ -334,13 +349,11 @@ void fill_values_and_submit(int* pos_indices, int current_idx, int m,
 
     // all pos is assigned
     if (current_idx == m) {
-        if(hamming(attemptSeq,currentSeq,seqlen) == m){
         (*submits)++;
         if (submit_PIN(currentSeq, seqlen, submitDelay)) {
             *found = 1;
-            // 注意：found_at 的逻辑根据实验要求可能需要记录是第几次尝试
+           
         }
-      }
         return;
     }
 
@@ -349,8 +362,7 @@ void fill_values_and_submit(int* pos_indices, int current_idx, int m,
 
     // all possible assignment
     for (int val = 1; val <= digits; val++) {
-        // 关键逻辑：只有当新值不同于原值时，汉明距离才会增加
-        // 如果题目要求“匹配”汉明距离 m，通常意味着这 m 个点必须变
+        
         if (val == original_val) continue; 
 
         currentSeq[target_pos] = val;
@@ -360,8 +372,6 @@ void fill_values_and_submit(int* pos_indices, int current_idx, int m,
         
         if (*found && !opt_e) return;
     }
-    // 回溯：恢复原始值（虽然不一定必须，但利于调试）
-    currentSeq[target_pos] = original_val;
 }
 
 /**
@@ -789,17 +799,85 @@ int main(int argc, char **argv){
       }
       }
 #else // This is task5 two loop implementation
-  /*
-   * Find out the hamming dist
-   * This means the value need to be modify
-   * two loop:
-   * loop out all the possible position need to modify
-   * loop out all the possible value on each possition
-   * */
-  int *pos_indices = calloc(hamming_dist, sizeof(int));
-  memcpy(submitSeq, attemptSeq, seqlen*sizeof(int));
-  select_positions(0, 0, hamming_dist, pos_indices, attemptSeq, submitSeq, digits, seqlen, submitDelay, &found, &submits, &found_at, opt_e);
-  free(pos_indices);
+    /**
+     * @brief two loop: outer give out all the result of combination
+     * inner try all the val in specific position
+     * @attention we don't need to check submitSeq's hamming_dist at all now
+     * as it is obtained from change hammming_dist digits in attemptSeq
+     * @attention we use goto here which is a very dangerous operation here.
+     * */
+    int n = seqlen;
+    int m = hamming_dist; //C_n^m
+    memcpy(submitSeq, attemptSeq, seqlen*sizeof(int));
+    
+    if(m==0) //It is the answer
+    {
+      attempts++;
+      submits++;
+      if(submit_PIN(submitSeq, seqlen, submitDelay))
+      {
+        found = 1;
+        found_at = attempts;
+        }
+      }else
+      {
+        int combo[m];
+        for(int i = 0; i < m; i++) combo[i] = i;
+        
+        while(1)
+        {
+        int vals[m];
+        for(int i = 0; i < m; i++) vals[i] = 1; //init the comb
+        int val_done = 0;
+        
+        while(!val_done)
+        {
+          for(int i=0; i<m; i++)
+          {
+              submitSeq[combo[i]] = vals[i]; //Modify the sequence
+            }
+            
+          /*Try to submit */
+          attempts++;
+          submits++;
+          if(submit_PIN(submitSeq,seqlen,submitDelay)){
+            if(!found)
+            {
+              found = 1;
+              found_at = attempts;
+              }
+            if(!opt_e) goto search_done;
+            }
+            
+            
+            if(incseq(vals,m,digits)) val_done = 1; //if detect overflow, then stop loop
+          }
+          
+          /*Generate next combination of loop*/
+          int i = m-1; //pointer, point to the first position who reach the maximum.
+          /*
+           * For each pos, to maintain the rising order , they have upper bound
+           * comb[m-1] <= n-1 (The last pos)
+           * m- 1 = n-1
+           * m -m + i = n-m+i
+           * so comb[i] <= n-m+i
+           * 
+           * */
+          while(i >=0 && combo[i] == n-m+i)
+          {
+            i--;
+            }
+          if(i < 0) break; //all combination exhauted
+          
+          combo[i]++;
+          for(int j = i+1; j < m; j++)
+          {
+            combo[j] = combo[j-1] + 1; //reset all the seq. because of rising seq, so the minum 1, 2,3,4 ...
+            }
+          }
+        }
+    
+        search_done:;
 #endif    
 
     stopTime = clock();
