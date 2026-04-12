@@ -320,61 +320,85 @@ int submit_PIN(const int *attSeq, int seqlen, int submitDelay) {
 
 /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 
-/*
- * @brief inner loop
- * From the first position to last position
- * From 1 to digits. generate all the possible value
- * @example: [3 2 2] [1 2]
- * [3 1 1] [3 1 2] [3 1 3]
- * [3 2 1] [3 2 2] [3 2 3]
- * */
-void choose(int *combine,int *attemptSeq,int *submitSeq,int digits, int n, int m, int currentM, int *found, int submitDelay)
-{
-    if(currentM == m)
-    {
-      if(hamming(submitSeq,attemptSeq,n) == m)
-      {
-       *found = submit_PIN(submitSeq, n, submitDelay);
+/**
+ * @brief Inner recursive. Give pos, gernate all the possible seq
+ * @param pos_indices  pos need to modify
+ * @param current_idx  point out which pos we are modifying
+ * @param m            the num of pos
+ */
+void fill_values_and_submit(int* pos_indices, int current_idx, int m, 
+                            int* attemptSeq, int* currentSeq, 
+                            int digits, int seqlen, int submitDelay, 
+                            int* found, int* submits, int* found_at, int opt_e) {
+    if (*found && !opt_e) return;
+
+    // all pos is assigned
+    if (current_idx == m) {
+        if(hamming(attemptSeq,currentSeq,seqlen) == m){
+        (*submits)++;
+        if (submit_PIN(currentSeq, seqlen, submitDelay)) {
+            *found = 1;
+            // 注意：found_at 的逻辑根据实验要求可能需要记录是第几次尝试
+        }
       }
-      return;
-      }
+        return;
+    }
+
+    int target_pos = pos_indices[current_idx];
+    int original_val = attemptSeq[target_pos];
+
+    // all possible assignment
+    for (int val = 1; val <= digits; val++) {
+        // 关键逻辑：只有当新值不同于原值时，汉明距离才会增加
+        // 如果题目要求“匹配”汉明距离 m，通常意味着这 m 个点必须变
+        if (val == original_val) continue; 
+
+        currentSeq[target_pos] = val;
+        fill_values_and_submit(pos_indices, current_idx + 1, m, 
+                               attemptSeq, currentSeq, digits, 
+                               seqlen, submitDelay, found, submits, found_at, opt_e);
+        
+        if (*found && !opt_e) return;
+    }
+    // 回溯：恢复原始值（虽然不一定必须，但利于调试）
+    currentSeq[target_pos] = original_val;
+}
+
+/**
+ * @brief outer loop: enumerate all the possible positions
+ * @param start: the start of domain
+ * @param count: the selected pos
+ * @param m: the hamming_dist, the num of pos need to be select
+ * @param pos_indices: use to store the pos combination
+ * @param attemptSeq: input sequence
+ * @param currentSeq: the seq used to modify and submit
+ * 
+ * end: the count == m, means all the pos is selected
+ * opt: assign a number at pos
+ * step: assign a nuber at the next pos, but domain modify to [num+1, n]
+ */
+void select_positions(int start, int count, int m, int* pos_indices, 
+                      int* attemptSeq, int* currentSeq, 
+                      int digits, int seqlen, int submitDelay, 
+                      int* found, int* submits, int* found_at, int opt_e) {
+    if (*found && !opt_e) return;
+
+    // m pos is selected , enter inner loop
+    if (count == m) {
+        fill_values_and_submit(pos_indices, 0, m, attemptSeq, currentSeq, 
+                               digits, seqlen, submitDelay, found, submits, found_at, opt_e);
+        return;
+    }
+
     
-    int Idx = combine[currentM];
-    for(int val = 1; val<=digits; val++)
-    {
-      submitSeq[Idx] = val;
-      if(!*found) choose(combine, attemptSeq, submitSeq, digits, n, m, currentM++ , found, submitDelay);
-      }
-  }
-
-
-/*
- * @brief Recursively give out all the combine possible
- * Forcely require the rising order
- * @param start: the beginning of the domain
- * @param index: the current position to choose the val
- * @param n: the seqlen, the num of choice
- * @param m: the hamming_dist, the num of positions
- * @param combine: store the combine of this time
- * @param digits
- * @param submitSeq: used in inner loop to be modified
- * @param found:  whether the pin is found
- * Outer loop of hamming search
- * */
-void comb(int start, int index, int n, int m, int *combine, int *attemptSeq,int *submitSeq,int digits,int *found,int submitDelay)
-{
-  if(index == m)
-  {
-    choose(combine, attemptSeq, submitSeq, digits,n ,m,0,found,submitDelay);
-    return;
+    for (int i = start; i < seqlen; i++) {
+        pos_indices[count] = i;
+        
+        select_positions(i + 1, count + 1, m, pos_indices, 
+                         attemptSeq, currentSeq, digits, seqlen, 
+                         submitDelay, found, submits, found_at, opt_e);
     }
-  for(int i = start; i<=n; i++)
-  {
-    combine[index] = i;
-    comb(start++,index++,n,m,combine,attemptSeq,submitSeq,digits,found,submitDelay);
-    }
-
-  }
+}
 
 int main(int argc, char **argv){
   int found = 0, code = 0, refCode = 0;
@@ -772,11 +796,10 @@ int main(int argc, char **argv){
    * loop out all the possible position need to modify
    * loop out all the possible value on each possition
    * */
-  int n = seqlen;
-  int m = hamming_dist;
-  int combine[m];
-  memcpy(submitSeq, attemptSeq, n*sizeof(int));
-
+  int *pos_indices = calloc(hamming_dist, sizeof(int));
+  memcpy(submitSeq, attemptSeq, seqlen*sizeof(int));
+  select_positions(0, 0, hamming_dist, pos_indices, attemptSeq, submitSeq, digits, seqlen, submitDelay, &found, &submits, &found_at, opt_e);
+  free(pos_indices);
 #endif    
 
     stopTime = clock();
