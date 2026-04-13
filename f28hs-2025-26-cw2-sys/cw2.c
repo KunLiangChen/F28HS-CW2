@@ -302,8 +302,9 @@ int incseq(int *seq, int seqlen,  int digits){
         carry = 0;
         break;
         }
-    return carry;
+    
     }
+    return carry;
   /* ***************************************************************************** */
 }
 
@@ -826,6 +827,7 @@ int main(int argc, char **argv){
         
         while(1)
         {
+        memcpy(submitSeq, attemptSeq, seqlen*sizeof(int));
         int vals[m];
         for(int i = 0; i < m; i++) vals[i] = 1; //init the comb
         int val_done = 0;
@@ -836,7 +838,11 @@ int main(int argc, char **argv){
           {
               submitSeq[combo[i]] = vals[i]; //Modify the sequence
             }
-            
+          for(int i =0 ;i <seqlen;i++)
+          {
+            printf("%d ",submitSeq[i]);
+            }
+          printf("\n");
           /*Try to submit */
           attempts++;
           submits++;
