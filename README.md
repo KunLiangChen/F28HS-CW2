@@ -129,7 +129,7 @@ The project is highly configurable. You can modify hardware pin assignments and 
 
 ## 📜 License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the Heriot-Watt License. 
 
 ---
 
