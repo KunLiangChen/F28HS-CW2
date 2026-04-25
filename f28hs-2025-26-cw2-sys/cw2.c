@@ -520,7 +520,13 @@ int main(int argc, char **argv){
   const char name[] = "Chen";
   int *submitSeq;
   attemptSeq = calloc(seqlen, sizeof(int));
+  if(attemptSeq==NULL) {
+    failure(true, "calloc failed");
+  }
   submitSeq = calloc(seqlen, sizeof(int));
+  if(submitSeq==NULL) {
+    failure(true, "calloc failed");
+  }
   /* Initialise the sequences that you need here, before using them  */
   /* ***************************************************************************** */
 
