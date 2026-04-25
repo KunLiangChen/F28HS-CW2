@@ -809,6 +809,7 @@ int main(int argc, char **argv){
      * */
     int n = seqlen;
     int m = hamming_dist; //C_n^m
+    int should_stop = 0;
     memcpy(submitSeq, attemptSeq, seqlen*sizeof(int));
     
     if(m==0) //It is the answer
@@ -838,11 +839,11 @@ int main(int argc, char **argv){
           {
               submitSeq[combo[i]] = vals[i]; //Modify the sequence
             }
-          for(int i =0 ;i <seqlen;i++)
-          {
-            printf("%d ",submitSeq[i]);
-            }
-          printf("\n");
+          //for(int i =0 ;i <seqlen;i++)
+          //{
+            //printf("%d ",submitSeq[i]);
+            //}
+          //printf("\n");
           /*Try to submit */
           attempts++;
           submits++;
@@ -852,13 +853,17 @@ int main(int argc, char **argv){
               found = 1;
               found_at = attempts;
               }
-            if(!opt_e) goto search_done;
+            if(!opt_e) 
+            {
+              should_stop = 1;
+              break;
+              }
             }
             
             
             if(incseq(vals,m,digits)) val_done = 1; //if detect overflow, then stop loop
           }
-          
+          if(should_stop) break;
           /*Generate next combination of loop*/
           int i = m-1; //pointer, point to the first position who reach the maximum.
           /*
