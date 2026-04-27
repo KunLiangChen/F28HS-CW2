@@ -12,10 +12,11 @@ hamming:		  @ Input: 2 ptrs to int arrays in R0 and R1, length in R2
 			  @ don't forget to push relevant registers here
 	@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 	@ ... COMPLETE THIS CODE ...
+	push {r4, r5}
 	mov r3, #0
 	cmp r2, #0
 	ble	done
-	push {r4, r5}
+	
 	
 loop:
 	cmp r2,#0
