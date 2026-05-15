@@ -719,7 +719,9 @@ int main(int argc, char **argv){
           if(!read_button(gpio,BUTTON)) continue;
           buttonPressed++;
           setitimer(ITIMER_REAL, &timer, NULL);
+          digital_write(gpio, LED, 1);
           while(read_button(gpio,BUTTON) && !timed_out);
+          digital_write(gpio, LED, 0);
           usleep(20000);
           }
         }
