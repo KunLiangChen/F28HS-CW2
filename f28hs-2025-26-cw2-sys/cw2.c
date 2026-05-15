@@ -519,22 +519,7 @@ int main(int argc, char **argv){
   /* COMPLETE THIS CODE */
   const char name[] = "Chen";
   int *submitSeq;
-  for (int i = 0; name[i] != '\0' && i < 5; i++) {
-        char c = name[i];
-        if (c >= 'A' && c <= 'Z') c = c + 32;
-        
-        if (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u') {
-            digital_write(gpio, LED, 1);
-            usleep(500000);
-            digital_write(gpio, LED, 0);
-            usleep(500000);
-        } else if (c >= 'a' && c <= 'z') {
-            digital_write(gpio, LED2, 1);
-            usleep(500000);
-            digital_write(gpio, LED2, 0);
-            usleep(500000);
-        }
-    }
+  
 
   attemptSeq = calloc(seqlen, sizeof(int));
   if(attemptSeq==NULL) {
@@ -684,6 +669,22 @@ int main(int argc, char **argv){
   /* Print Greetings Message on LCD display */
   /* ***************************************************************************** */
   /* COMPLETE THIS CODE */
+  for (int i = 0; name[i] != '\0' && i < 5; i++) {
+        char c = name[i];
+        if (c >= 'A' && c <= 'Z') c = c + 32;
+        
+        if (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u') {
+            digital_write(gpio, LED, 1);
+            usleep(500000);
+            digital_write(gpio, LED, 0);
+            usleep(500000);
+        } else if (c >= 'a' && c <= 'z') {
+            digital_write(gpio, LED2, 1);
+            usleep(500000);
+            digital_write(gpio, LED2, 0);
+            usleep(500000);
+        }
+    }
    lcd_puts(gpio, name);
   /* ***************************************************************************** */
 
