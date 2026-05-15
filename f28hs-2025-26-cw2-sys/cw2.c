@@ -442,7 +442,7 @@ int main(int argc, char **argv){
   
   // -------------------------------------------------------
   // process command-line arguments
-
+  
   // see: man 3 getopt for docu and an example of command line parsing
   { // see the CW spec for the intended meaning of these options
     int opt;
@@ -519,6 +519,23 @@ int main(int argc, char **argv){
   /* COMPLETE THIS CODE */
   const char name[] = "Chen";
   int *submitSeq;
+  for (int i = 0; name[i] != '\0' && i < 5; i++) {
+        char c = name[i];
+        if (c >= 'A' && c <= 'Z') c = c + 32;
+        
+        if (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u') {
+            digital_write(gpio, LED, 1);
+            usleep(500000);
+            digital_write(gpio, LED, 0);
+            usleep(500000);
+        } else if (c >= 'a' && c <= 'z') {
+            digital_write(gpio, LED2, 1);
+            usleep(500000);
+            digital_write(gpio, LED2, 0);
+            usleep(500000);
+        }
+    }
+
   attemptSeq = calloc(seqlen, sizeof(int));
   if(attemptSeq==NULL) {
     failure(true, "calloc failed");
@@ -700,6 +717,7 @@ int main(int argc, char **argv){
           usleep(20000);
           if(!read_button(gpio,BUTTON)) continue;
           buttonPressed++;
+          setitimer(ITIMER_REAL, &timer, NULL);
           while(read_button(gpio,BUTTON) && !timed_out);
           usleep(20000);
           }
@@ -733,7 +751,10 @@ int main(int argc, char **argv){
       /* ***************************************************************************** */
       printf(" value of buttonPressed: current value: %d\n", buttonPressed);
       buttonPressed = 0;
+
   }
+
+  blinkN(gpio, LED2, 2);
 }
     // -------------------------------------------------------
     // PHASE 2: Main Task: full search
@@ -915,6 +936,11 @@ int main(int argc, char **argv){
   usleep(2000);
   lcd_write_row(gpio, 1,"PIN");
   lcd_write_row(gpio, 2,"found");
+  char seqStr[17] = {0}; 
+  for (int i = 0; i < seqlen && i < 16; i++) {
+      seqStr[i] = submitSeq[i] + '0';
+  }
+  lcd_write_row(gpio, 2, seqStr);
   free(theSeq);
   free(refSeq);
   free(attemptSeq);
